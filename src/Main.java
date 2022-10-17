@@ -15,47 +15,71 @@ public class Main extends JFrame {
     int maxValue;
     Color tempColor;
     ArrayList<Color> colors;
-
-
+    Graphics2D g2d;
 
     public Main() {
         super("GIMP");
+
+        colors = new ArrayList<Color>();
+
         setContentPane(mainPanel);
-
-        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\ppm-obrazy-testowe\\ppm-test-04-p3-16bit.ppm");
-
-        setSize(800, 600);
+        setSize(1920, 1080);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         setLocationRelativeTo(null);
         setVisible(true);
 
+        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\cake.ppm");
 
+        picture.setSize(width,height);
+        picture.setBackground(java.awt.Color.BLACK);
+        g2d = (Graphics2D) picture.getGraphics();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                drawPicture();
+            }
+        });
+
+        mainPanel.add(picture);
     }
 
-    public static void main(String args[]){
-        new Main();
+    private void drawPicture() {
+        int colorIterator = 0;
+
+
+        for(int i = 0; i < height; i++){
+            for(int j = 0; j < width; j++){
+
+                g2d.setColor(new java.awt.Color(colors.get(colorIterator).getR(), colors.get(colorIterator).getG(), colors.get(colorIterator).getB()));
+
+                g2d.fillRect(j, i, 1, 1);
+                g2d.drawRect(j, i, 1, 1);
+
+                colorIterator++;
+            }
+        }
     }
 
     public void readFromFile(String filePath){
         try {
             File file = new File(filePath);
             Scanner scanner = new Scanner(file);
-            while (scanner.hasNext()) {
-                int iterator = 0;
 
+            int iterator = 0;
+
+            while (scanner.hasNext()) {
                 if(iterator == 0){
                     String line = scanner.next();
-//                    System.out.println(line);
+                    System.out.println(line);
                 } else if(iterator == 1){
                     width = Integer.parseInt(scanner.next());
-//                    System.out.println(width);
+                    System.out.println(width);
                 } else if(iterator == 2){
                     height = Integer.parseInt(scanner.next());
-//                    System.out.println(height);
+                    System.out.println(height);
                 } else if(iterator == 3){
                     maxValue = Integer.parseInt(scanner.next());
-//                    System.out.println(height);
+                    System.out.println(maxValue);
                 } else {
                     if(iterator % 4 == 0){
                         tempColor = new Color();
@@ -65,10 +89,10 @@ public class Main extends JFrame {
                     } else if(iterator % 6 == 0){
                         tempColor.setB(Integer.parseInt(scanner.next()));
 
-//                        System.out.println(tempColor.getR() + tempColor.getG() + tempColor.getB() + ", ");
+//                        System.out.println("(R: " + tempColor.getR() + " G: " + tempColor.getG() + " B: " + tempColor.getB() + ")");
 
                         colors.add(tempColor);
-                    } else iterator = 4;
+                    } else iterator = 3;
                 }
 
                 iterator++;
@@ -79,5 +103,9 @@ public class Main extends JFrame {
             System.out.println("An error occurred.");
             error.printStackTrace();
         }
+    }
+
+    public static void main(String args[]){
+        new Main();
     }
 }

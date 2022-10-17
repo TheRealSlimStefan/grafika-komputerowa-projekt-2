@@ -4,6 +4,10 @@ public class Color {
     private int b;
 
     public Color() {
+        this.r = -1;
+        this.g = -1;
+        this.b = -1;
+
     }
 
     public Color(int r, int g, int b) {

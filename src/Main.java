@@ -61,14 +61,19 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
         if (!compressed) {
             try {
                 if (!textFieldFileName.getText().isEmpty()) {
-                    File file =  new File(textFieldFileName.getText().trim() + ".jpeg");
-                    if(!file.exists()){
+                    File file = new File(textFieldFileName.getText().trim() + ".jpeg");
+                    if (!file.exists()) {
                         ImageIO.write(image, "jpeg", file);
-                        System.out.println("zapisane w " + textFieldFileName.getText().trim() + ".jpeg");
-                    }else{
-                        System.out.println("Plik" + textFieldFileName.getText().trim() + ".jpeg" + "już istnieje. Wpisz inną nazwę");
+                        Toast toast = new Toast("File saved", getWidth() / 2, getHeight());
+                        toast.showtoast();
+                    } else {
+                        Toast toast = new Toast("File " + textFieldFileName.getText().trim() + ".jpeg already exists", getWidth() / 2, getHeight());
+                        toast.showtoast();
                     }
-                } else System.out.println("Pole Nazwa nie moze byc puste");
+                } else {
+                    Toast toast = new Toast("The 'Name' field must not be empty", getWidth() / 2, getHeight());
+                    toast.showtoast();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -77,10 +82,12 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                 String textQuality = textFieldQuality.getText();
                 float quality = Float.parseFloat(textQuality) / 100;
 
-                if (quality <= 0 || quality > 1) System.out.println("cos nie tak");
-                else {
+                if (quality <= 0 || quality > 1) {
+                    Toast toast = new Toast("The compression quality entered is incorrect. Enter an integer between 1 and 100", getWidth() / 2, getHeight());
+                    toast.showtoast();
+                } else {
                     File compressedImageFile = new File(textFieldFileName.getText().trim() + ".jpeg");
-                    if(!compressedImageFile.exists()){
+                    if (!compressedImageFile.exists()) {
 
                         OutputStream os = new FileOutputStream(compressedImageFile);
                         Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
@@ -101,21 +108,25 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                         os.close();
                         ios.close();
                         writer.dispose();
-                        System.out.println("Compressed zapisane w " + textFieldFileName.getText().trim() + ".jpeg");
-                    }else{
-                        System.out.println("Plik" + textFieldFileName.getText().trim() + ".jpeg" + "już istnieje. Wpisz inną nazwę");
+                        Toast toast = new Toast("File saved", getWidth() / 2, getHeight());
+                        toast.showtoast();
+                    } else {
+                        Toast toast = new Toast("File " + textFieldFileName.getText().trim() + ".jpeg already exists", getWidth() / 2, getHeight());
+                        toast.showtoast();
                     }
                 }
-            } else System.out.println("Pole nie moze byc puste");
-
-
+            } else {
+                Toast toast = new Toast("The 'Name' field must not be empty", getWidth() / 2, getHeight());
+                toast.showtoast();
+            }
         }
 
     }
 
-    public void readyToDraw(){
+    public void readyToDraw() {
         picture.setSize(width, height);
-        g2d = (Graphics2D) picture.getGraphics();
+//        g2d = (Graphics2D) picture.getGraphics();
+        g2d = (Graphics2D) picture.getGraphics().create();
         if (image == null && flag == 2) {
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             g2image = image.createGraphics();
@@ -156,6 +167,8 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                 }
             }
         }
+        picture.paintComponents(g2d);
+        g2d.dispose();
     }
 
     public void readFromFile(String filePath) {
@@ -163,7 +176,6 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
         if ((filePath).startsWith("jpeg", filePath.length() - 4)) {
             flag = 1;
             try {
-                System.out.println("Jestem tam gdzie powininenem");
                 image = ImageIO.read(new File(filePath));
                 width = image.getWidth();
                 height = image.getHeight();
@@ -172,7 +184,7 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
             } catch (Exception e) {
             }
 
-        } else if ((filePath).startsWith("ppm", filePath.length() - 3)){
+        } else if ((filePath).startsWith("ppm", filePath.length() - 3)) {
             flag = 2;
 
             try {
@@ -188,10 +200,7 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                     if (line.contains("#")) line = line.substring(0, line.indexOf("#"));
 
                     String[] values = line.split("\\s");
-                    for (int i = 0; i < values.length; i++){
-                        System.out.println("Length: " + values.length);
-                        System.out.println(values[i]);
-                    }
+
                     if (type == null) type = values[0];
                     if (type.equals("P3")) {
                         for (int i = 0; i < values.length; i++) {
@@ -285,9 +294,9 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else{
-            System.out.println("Podano nieprawidłowy typ pliku, podaj plik z rozszerzeniem *.ppm lub *.jpeg");
+        } else {
+            Toast toast = new Toast("Incorrect file type specified, specify file with extension *.ppm or *.jpeg", getWidth() / 2, getHeight());
+            toast.showtoast();
         }
     }
 
@@ -298,18 +307,19 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand() == "Open") {
-                if(!textFieldFilePath.getText().isEmpty()){
-                    File f = new File(textFieldFilePath.getText().trim());
-                    if(f.exists() && !f.isDirectory() && f.isFile()) {
-                        System.out.println("Ide czytać");
-                        readFromFile(textFieldFilePath.getText().trim());
-                    }
-                    else{
-                        System.out.println("Podany plik nie istnieje lub nie jest plikiem");
-                    }
-                }else{
-                    System.out.println("Pole nie moze byc puste");
+            if (!textFieldFilePath.getText().isEmpty()) {
+                File f = new File(textFieldFilePath.getText().trim());
+                if (f.exists() && !f.isDirectory() && f.isFile()) {
+                    picture.revalidate();
+                    readFromFile(textFieldFilePath.getText().trim());
+                } else {
+                    Toast toast = new Toast("The specified file does not exist or is not a file", getWidth() / 2, getHeight());
+                    toast.showtoast();
                 }
+            } else {
+                Toast toast = new Toast("The 'file name' field must not be empty", getWidth() / 2, getHeight());
+                toast.showtoast();
+            }
         }
         if (e.getActionCommand() == "Save") {
             try {
@@ -325,8 +335,6 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                 ex.printStackTrace();
             }
         }
-
-
     }
 
     @Override

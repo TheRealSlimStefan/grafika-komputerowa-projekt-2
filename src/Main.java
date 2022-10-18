@@ -1,20 +1,33 @@
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.Iterator;
 
-public class Main extends JFrame {
+public class Main extends JFrame implements MouseMotionListener, ActionListener {
 
     private JPanel mainPanel;
     private JPanel picture;
+    private JTextField textFieldQuality;
+    private JButton saveButton1;
+    private JButton saveButton;
+    private JTextField textFieldFilePath;
+    private JButton openButton;
+    private JTextField textFieldFileName;
 
     int width;
     int height;
@@ -33,47 +46,93 @@ public class Main extends JFrame {
         super("GIMP");
 
         colors = new ArrayList<Color>();
-
         setContentPane(mainPanel);
         setSize(900, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setVisible(true);
 
-//        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\ppm-test-01-p3.ppm");
-//        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\ppm-test-02-p3-comments.ppm");
-//        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\ppm-test-07-p3-big.ppm");
-//        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\ppm-test-04-p3-16bit.ppm");
-        readFromFile("C:\\Users\\19sma\\OneDrive\\Desktop\\ppm-test-03-p6.ppm");
+        saveButton.addActionListener(this);
+        saveButton1.addActionListener(this);
+        openButton.addActionListener(this);
+    }
 
+    private void makePanelImage(boolean compressed) throws IOException {
+        if (!compressed) {
+            try {
+                if (!textFieldFileName.getText().isEmpty()) {
+                    File file =  new File(textFieldFileName.getText().trim() + ".jpeg");
+                    if(!file.exists()){
+                        ImageIO.write(image, "jpeg", file);
+                        System.out.println("zapisane w " + textFieldFileName.getText().trim() + ".jpeg");
+                    }else{
+                        System.out.println("Plik" + textFieldFileName.getText().trim() + ".jpeg" + "już istnieje. Wpisz inną nazwę");
+                    }
+                } else System.out.println("Pole Nazwa nie moze byc puste");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            if (!textFieldQuality.getText().isEmpty()) {
+                String textQuality = textFieldQuality.getText();
+                float quality = Float.parseFloat(textQuality) / 100;
+
+                if (quality <= 0 || quality > 1) System.out.println("cos nie tak");
+                else {
+                    File compressedImageFile = new File(textFieldFileName.getText().trim() + ".jpeg");
+                    if(!compressedImageFile.exists()){
+
+                        OutputStream os = new FileOutputStream(compressedImageFile);
+                        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
+
+                        if (!writers.hasNext())
+                            throw new IllegalStateException("No writers found");
+
+                        ImageWriter writer = writers.next();
+                        ImageOutputStream ios = ImageIO.createImageOutputStream(os);
+                        writer.setOutput(ios);
+
+                        ImageWriteParam param = writer.getDefaultWriteParam();
+
+                        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                        param.setCompressionQuality(quality);
+                        writer.write(null, new IIOImage(image, null, null), param);
+
+                        os.close();
+                        ios.close();
+                        writer.dispose();
+                        System.out.println("Compressed zapisane w " + textFieldFileName.getText().trim() + ".jpeg");
+                    }else{
+                        System.out.println("Plik" + textFieldFileName.getText().trim() + ".jpeg" + "już istnieje. Wpisz inną nazwę");
+                    }
+                }
+            } else System.out.println("Pole nie moze byc puste");
+
+
+        }
+
+
+    }
+
+    public void readyToDraw(){
         picture.setSize(width, height);
-        picture.setBackground(java.awt.Color.BLACK);
         g2d = (Graphics2D) picture.getGraphics();
         if (image == null && flag == 2) {
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             g2image = image.createGraphics();
         }
-
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                drawPicture();
+                try {
+                    drawPicture();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
-
-        mainPanel.add(picture);
-
     }
 
-    private void makePanelImage() {
-
-        try {
-//            ImageIO.write(image, "jpeg", new File("C:\\Users\\justy\\Desktop\\ImageAsJPeg.jpeg"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void drawPicture() {
+    private void drawPicture() throws IOException {
         int colorIterator = 0;
         if (flag == 1) {
             float[] scales = {1f, 1f, 1f};
@@ -98,21 +157,23 @@ public class Main extends JFrame {
                 }
             }
         }
-        makePanelImage();
     }
 
     public void readFromFile(String filePath) {
         String line;
-        if ((filePath.substring(filePath.length() - 4, filePath.length())).equals("jpeg")) {
+        if ((filePath).startsWith("jpeg", filePath.length() - 4)) {
             flag = 1;
             try {
+                System.out.println("Jestem tam gdzie powininenem");
                 image = ImageIO.read(new File(filePath));
                 width = image.getWidth();
                 height = image.getHeight();
                 g2image = (Graphics2D) image.getGraphics();
+                readyToDraw();
             } catch (Exception e) {
             }
-        } else {
+
+        } else if ((filePath).startsWith("ppm", filePath.length() - 3)){
             flag = 2;
 
             try {
@@ -125,14 +186,11 @@ public class Main extends JFrame {
 
                 while ((line = scanner.readLine()) != null) {
 
-
-
-
                     if (line.contains("#")) line = line.substring(0, line.indexOf("#"));
 
                     String[] values = line.split("\\s");
-                    if(type == null) type = values[0];
-                    if(type.equals("P3")){
+                    if (type == null) type = values[0];
+                    if (type.equals("P3")) {
                         for (int i = 0; i < values.length; i++) {
                             if (values[i].length() != 0) {
                                 if (iterator == 0) {
@@ -170,8 +228,8 @@ public class Main extends JFrame {
                                 iterator++;
                             }
                         }
-                    }
-                    else if(type.equals("P6")){
+                        readyToDraw();
+                    } else if (type.equals("P6")) {
                         for (int i = 0; i < values.length; i++) {
                             if (values[i].length() != 0) {
                                 if (iterator == 0) {
@@ -187,7 +245,7 @@ public class Main extends JFrame {
                                     System.out.println(maxValue);
                                 } else {
                                     if (iterator % 4 == 0) {
-                                        byte [] value = values[i].getBytes(StandardCharsets.UTF_8);
+                                        byte[] value = values[i].getBytes(StandardCharsets.UTF_8);
                                         System.out.println(Integer.parseInt(String.valueOf(value)));
                                     }
 //                                        tempColor = new Color();
@@ -225,9 +283,56 @@ public class Main extends JFrame {
                 e.printStackTrace();
             }
         }
+        else{
+            System.out.println("Podano nieprawidłowy typ pliku, podaj plik z rozszerzeniem *.ppm lub *.jpeg");
+        }
     }
 
     public static void main(String args[]) {
         new Main();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getActionCommand() == "Open") {
+                if(!textFieldFilePath.getText().isEmpty()){
+                    File f = new File(textFieldFilePath.getText().trim());
+                    if(f.exists() && !f.isDirectory() && f.isFile()) {
+                        System.out.println("Ide czytać");
+                        readFromFile(textFieldFilePath.getText().trim());
+                    }
+                    else{
+                        System.out.println("Podany plik nie istnieje lub nie jest plikiem");
+                    }
+                }else{
+                    System.out.println("Pole nie moze byc puste");
+                }
+        }
+        if (e.getActionCommand() == "Save") {
+            try {
+                makePanelImage(false);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        if (e.getActionCommand() == "Save Compressed") {
+            try {
+                makePanelImage(true);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+
     }
 }

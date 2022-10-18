@@ -111,7 +111,6 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
 
         }
 
-
     }
 
     public void readyToDraw(){
@@ -189,6 +188,10 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                     if (line.contains("#")) line = line.substring(0, line.indexOf("#"));
 
                     String[] values = line.split("\\s");
+                    for (int i = 0; i < values.length; i++){
+                        System.out.println("Length: " + values.length);
+                        System.out.println(values[i]);
+                    }
                     if (type == null) type = values[0];
                     if (type.equals("P3")) {
                         for (int i = 0; i < values.length; i++) {
@@ -228,53 +231,53 @@ public class Main extends JFrame implements MouseMotionListener, ActionListener 
                                 iterator++;
                             }
                         }
-                        readyToDraw();
-                    } else if (type.equals("P6")) {
-                        for (int i = 0; i < values.length; i++) {
-                            if (values[i].length() != 0) {
-                                if (iterator == 0) {
-                                    System.out.println(values[i]);
-                                } else if (iterator == 1) {
-                                    width = Integer.parseInt(values[i]);
-                                    System.out.println(width);
-                                } else if (iterator == 2) {
-                                    height = Integer.parseInt(values[i]);
-                                    System.out.println(height);
-                                } else if (iterator == 3) {
-                                    maxValue = Integer.parseInt(values[i]);
-                                    System.out.println(maxValue);
-                                } else {
-                                    if (iterator % 4 == 0) {
-                                        byte[] value = values[i].getBytes(StandardCharsets.UTF_8);
-                                        System.out.println(Integer.parseInt(String.valueOf(value)));
-                                    }
-//                                        tempColor = new Color();
-//                                        System.out.println(values[i]);
-//
-//
-//
-////                                        tempColor.setR((int) (Integer.parseInt(values[i]) * 255 / maxValue));
-//                                    } else if (iterator % 5 == 0) {
-//                                        System.out.println(values[i]);
-////                                        tempColor.setG((int) (Integer.parseInt(values[i]) * 255 / maxValue));
-//                                    } else if (iterator % 6 == 0) {
-//                                        System.out.println(values[i]);
-////                                        tempColor.setB((int) (Integer.parseInt(values[i]) * 255 / maxValue));
-//
-////                                System.out.println("(R: " + tempColor.getR() + " G: " + tempColor.getG() + " B: " + tempColor.getB() + ")");
-//
-////                                        colors.add(tempColor);
-//                                    } else {
-//                                        iterator = 3;
-//                                        i--;
-//                                    }
-                                }
-                                iterator++;
-                            }
-                        }
                     }
+//                    else if (type.equals("P6")) {
+//                        for (int i = 0; i < values.length; i++) {
+//                            if (values[i].length() != 0) {
+//                                if (iterator == 0) {
+//                                    System.out.println(values[i]);
+//                                } else if (iterator == 1) {
+//                                    width = Integer.parseInt(values[i]);
+//                                    System.out.println(width);
+//                                } else if (iterator == 2) {
+//                                    height = Integer.parseInt(values[i]);
+//                                    System.out.println(height);
+//                                } else if (iterator == 3) {
+//                                    maxValue = Integer.parseInt(values[i]);
+//                                    System.out.println(maxValue);
+//                                } else {
+//                                    if (iterator % 4 == 0) {
+//                                        byte[] value = values[i].getBytes(StandardCharsets.UTF_8);
+//                                        System.out.println(Integer.parseInt(String.valueOf(value)));
+//                                    }
+////                                        tempColor = new Color();
+////                                        System.out.println(values[i]);
+////
+////
+////
+//////                                        tempColor.setR((int) (Integer.parseInt(values[i]) * 255 / maxValue));
+////                                    } else if (iterator % 5 == 0) {
+////                                        System.out.println(values[i]);
+//////                                        tempColor.setG((int) (Integer.parseInt(values[i]) * 255 / maxValue));
+////                                    } else if (iterator % 6 == 0) {
+////                                        System.out.println(values[i]);
+//////                                        tempColor.setB((int) (Integer.parseInt(values[i]) * 255 / maxValue));
+////
+//////                                System.out.println("(R: " + tempColor.getR() + " G: " + tempColor.getG() + " B: " + tempColor.getB() + ")");
+////
+//////                                        colors.add(tempColor);
+////                                    } else {
+////                                        iterator = 3;
+////                                        i--;
+////                                    }
+//                                }
+//                                iterator++;
+//                            }
+//                        }
+//                    }
                 }
-
+                readyToDraw();
                 scanner.close();
             } catch (FileNotFoundException error) {
                 System.out.println("An error occurred.");
